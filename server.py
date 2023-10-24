@@ -1,5 +1,4 @@
 import cv2
-print('test2')
 import imagezmq
 
 from flask import Flask, request, render_template, Response, jsonify
@@ -22,26 +21,29 @@ data = None
 def main():
 
     while True:
+        try:
 
-        rpi_name, frame = image_hub.recv_image()
-
-        #cv2.imshow(rpi_name, frame)
-
-        image_hub.send_reply(b'OK')  #<<-- do NOT use this with PUB / SUB mode]
-
-        #key = cv2.waitKey(1) & 0xFF
-
-        #if key ==ord('q'):
-
-        #    break
-
-        ret, buffer = cv2.imencode('.jpg', frame)
-
-        frame = buffer.tobytes()
-
-        yield (b'--frame\r\n'
-
-                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            rpi_name, frame = image_hub.recv_image()
+    
+            #cv2.imshow(rpi_name, frame)
+    
+            image_hub.send_reply(b'OK')  #<<-- do NOT use this with PUB / SUB mode]
+    
+            #key = cv2.waitKey(1) & 0xFF
+    
+            #if key ==ord('q'):
+    
+            #    break
+    
+            ret, buffer = cv2.imencode('.jpg', frame)
+    
+            frame = buffer.tobytes()
+    
+            yield (b'--frame\r\n'
+    
+                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        except:
+            print('imageZmq error')
 
 
 @app.route("/")
