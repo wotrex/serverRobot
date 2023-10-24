@@ -22,8 +22,7 @@ def main():
     while True:
         try:
 
-            rpi_name, frame = image_hub.recv_jpg()
-            print(frame))
+            rpi_name, frame = image_hub.recv_image()
 
             image_hub.send_reply(b'OK')  #<<-- do NOT use this with PUB / SUB mode]
     
