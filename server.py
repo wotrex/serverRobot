@@ -2,7 +2,6 @@ import cv2
 import imagezmq
 
 from flask import Flask, request, render_template, Response, jsonify
-import ffmpeg
 import socket, pickle
 import threading
 import time
@@ -26,16 +25,9 @@ def main():
             rpi_name, frame = image_hub.recv_image()
 
             image_hub.send_reply(b'OK')  #<<-- do NOT use this with PUB / SUB mode]
-
-            process = (
-                ffmpeg.input('pipe:0', format='rawvideo', pix_fmt='yuv420p', s='{}x{}'.format(300, 300))
-                .output('pipe:1', format='rawvideo', pix_fmt='bgr24')
-                .run(input=frame)
-            )
-            uncompressed_frame = process.communicate()[0]
     
     
-            ret, buffer = cv2.imencode('.jpg', uncompressed_frame)
+            ret, buffer = cv2.imencode('.jpg', frame)
     
             frame = buffer.tobytes()
     
