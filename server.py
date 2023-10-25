@@ -1,42 +1,65 @@
-import cv2
-import imagezmq
-
+import aiohttp
+from aiohttp import web, WSMsgType, ClientSession
+from aiohttp.web import WebSocketResponse
+import numpy as np
+import cv2, socket, pickle
+from threading import Thread
 from flask import Flask, request, render_template, Response, jsonify
-import socket, pickle
-import threading
-import time
 
-
-app = Flask(__name__)
-
-
-image_hub = imagezmq.ImageHub(open_port='tcp://*:5556')
-serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-serversocket.bind(('0.0.0.0', 8989))
-serversocket.listen(2)
 
 data = None
+frame = None
+
+################################################socket###############
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(('0.0.0.0', 9999))
+server.listen(1)
+
+
+def socket_server():
+    client_socket = 0
+    client_address = 0
+    global data
+    while True:
+        if client_socket == 0:
+            client_socket, client_address = server.accept()
+            print(client_address, ' connected')
+        else:
+            if data is not None:
+                data_to_send_serialized = pickle.dumps(data)
+                client_socket.send(data_to_send_serialized)
+                print('sended')
+                data = None
+
+            try:
+                client_socket.setblocking(0)
+                data_recv = client_socket.recv(1024)
+                if not data_recv:
+                    print(client_address, " disconnected")
+                    client_socket.close()
+                    client_socket = 0
+                    continue
+            except socket.error as e:
+                pass
+            client_socket.setblocking(1)
+
+            
+
+
+##############################################Flask########################
+app = Flask(__name__)
 
 def main():
-
+    global frame
     while True:
-        try:
-
-            rpi_name, frame = image_hub.recv_image()
-
-            image_hub.send_reply(b'OK')  #<<-- do NOT use this with PUB / SUB mode]
-    
-    
+        if frame is not None:
             ret, buffer = cv2.imencode('.jpg', frame)
-    
-            frame = buffer.tobytes()
-    
+            image = buffer.tobytes()
             yield (b'--frame\r\n'
+            
+                            b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
     
-                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        except:
-            print('imageZmq error')
-
 
 @app.route("/")
 
@@ -57,70 +80,42 @@ def gamepad_data():
     data = request.get_json()
     return jsonify({'message': 'Data gets'})
 
-c = 0
-addr = 0
+def start_flask():
+
+    app.run(host='0.0.0.0', debug=True, use_reloader=False)
 
 
-def gamepad_send():
 
+#####################################Server video#################################
+    
+async def handle(request):
+    global frame
     global data
-    global c
-    global addr
+    ws = WebSocketResponse()
+    await ws.prepare(request)
+
+    print('ready')
 
     while True:
+        msg = await ws.receive()
+        if msg.type == WSMsgType.binary:
+            frame_data = msg.data
+            frame = cv2.imdecode(np.frombuffer(frame_data, dtype=np.uint8), cv2.IMREAD_COLOR)
+            # Отримані кадри можна відображати, наприклад, за допомогою OpenCV
+##            cv2.imshow('Server Video', frame)
+##            cv2.waitKey(1)
+        elif msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
+            break
 
-        if c == 0:
+    return ws
 
-           c, addr = serversocket.accept()
 
-           print(str(addr) + " connected.")
-
-           t2 = threading.Thread(target = time_con)
-
-           t2.start()
-
-        else:
-
-           try:
-               if data is not None:
-
-                  data_arr = pickle.dumps(data)
-
-                  c.sendall(data_arr)
-
-                  data = None
-           except:
-                  c.close()
-
-                  c = 0
-
-                  print(str(addr) + " disconnected")
-
-                  continue
-           if serversocket is None:
-              break
-
-def time_con():
-    global c
-    global addr
-    print('con')
-    while True:	     
-        time.sleep(2)
-        try:
-           data = c.recv(64)
-           print(data)
-           if not data:
-              c.close()
-              c = 0
-              print(str(addr) + " disconnected")
-              break
-        except:
-           c.close()
-           c = 0
-           print(str(addr) + " disconnected")
-           break	
-
-t1 = threading.Thread(target=gamepad_send)
-t1.start()
-
-app.run(host='0.0.0.0', debug=True, use_reloader=False)
+if __name__ == '__main__':
+    t1 = Thread(target = start_flask)
+    t1.start()
+    t2 = Thread(target = socket_server)
+    t2.daemon = True
+    t2.start()
+    WebApp = web.Application()
+    WebApp.router.add_get('/ws', handle)
+    web.run_app(WebApp)
