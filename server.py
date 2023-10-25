@@ -29,7 +29,6 @@ def socket_server():
             if data is not None:
                 data_to_send_serialized = pickle.dumps(data)
                 client_socket.send(data_to_send_serialized)
-                print('sended')
                 data = None
 
             try:
@@ -93,8 +92,6 @@ async def handle(request):
     global data
     ws = WebSocketResponse()
     await ws.prepare(request)
-
-    print('ready')
 
     while True:
         msg = await ws.receive()
