@@ -2,16 +2,13 @@ import aiohttp
 from aiohttp import web, WSMsgType, ClientSession
 from aiohttp.web import WebSocketResponse
 import numpy as np
-import cv2, socket, pickle, time
+import cv2, socket, pickle
 from threading import Thread
 from flask import Flask, request, render_template, Response, jsonify
 
 
 data = None
 frame = None
-
-total_data_received = 0
-start_time = time.time()
 
 ################################################socket###############
 
@@ -92,7 +89,7 @@ def start_flask():
 #####################################Server video#################################
     
 async def handle(request):
-    global total_data_received, start_time, frame, data
+    global frame, data
     ws = WebSocketResponse()
     await ws.prepare(request)
 
@@ -103,16 +100,6 @@ async def handle(request):
         if msg.type == WSMsgType.binary:
             frame_data = msg.data
             frame = cv2.imdecode(np.frombuffer(frame_data, dtype=np.uint8), cv2.IMREAD_COLOR)
-            total_data_received += len(frame_data)  # Додаємо обсяг отриманих даних
-
-            # Вимірюємо час та виводимо швидкість кожну секунду
-            current_time = time.time()
-            elapsed_time = current_time - start_time
-            if elapsed_time >= 1:
-                receive_speed = (total_data_received / 1024) / elapsed_time  # KB/s
-                print(f"Receive speed: {receive_speed:.2f} KB/s")
-                total_data_received = 0  # Скидаємо лічильник отриманих даних
-                start_time = current_time  # Оновлюємо час
             # Отримані кадри можна відображати, наприклад, за допомогою OpenCV
 ##            cv2.imshow('Server Video', frame)
 ##            cv2.waitKey(1)
