@@ -110,8 +110,9 @@ if __name__ == '__main__':
     t1 = Thread(target = start_flask)
     t1.start()
     t2 = Thread(target = socket_server)
-    t2.daemon = True
     t2.start()
     WebApp = web.Application()
     WebApp.router.add_get('/ws', handle)
     web.run_app(WebApp)
+    t1.join()
+    t2.join()
