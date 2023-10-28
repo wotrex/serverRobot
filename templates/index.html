@@ -393,17 +393,23 @@
 				textarea.textContent += `Button ${buttonIndex}  `;
 			}
 		});
-        if (myGamepad.buttons[forward.value].pressed){
-          coordinates[0] = myGamepad.buttons[forward.value].value
-        }else{
-          coordinates[0] = 0
-        }
-        if (myGamepad.buttons[back.value].pressed){
-          coordinates[1] = myGamepad.buttons[back.value].value
-        }else{
-          coordinates[1] = 0
-        }
-        coordinates[2] = myGamepad.axes[rotate.value]
+		if (forward.value != null){
+			if (myGamepad.buttons[forward.value].pressed){
+			coordinates[0] = myGamepad.buttons[forward.value].value
+			}else{
+			coordinates[0] = 0
+			}
+		}
+		if (back.value != null){
+			if (myGamepad.buttons[back.value].pressed){
+			coordinates[1] = myGamepad.buttons[back.value].value
+			}else{
+			coordinates[1] = 0
+			}
+		}
+		if (rotate.value != null){
+        	coordinates[2] = myGamepad.axes[rotate.value]
+		}
 		axis1.textContent = `Axis1 ${myGamepad.axes[0]}  `;
 
         axis2.textContent = `Axis2 ${myGamepad.axes[1]}  `;
