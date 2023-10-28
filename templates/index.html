@@ -27,6 +27,7 @@
 		margin: 0 auto;
 		display: flex;
 		align-items: center;
+		flex-direction: column;
 	}
 
 	/* SCREEN */
@@ -91,6 +92,39 @@
 		content: 'BATTERY';
 		font-family: sans-serif;
 		color: #afaeae;
+	}
+
+	/* SETTING */
+	.gameboy__setting_btn {
+		width: 20px;
+		height: 4px;
+		border-radius: 4px;
+		background: #3a3a3a;
+		margin: 20px auto;
+	}
+
+	.gameboy__setting {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.56);
+		align-items: center;
+		justify-content: center;
+		display: none;
+	}
+
+	.gameboy__setting.show {
+		display: flex;
+	}
+
+	.gameboy__setting_content {
+		padding: 20px;
+		background: white;
+		max-width: 600px;
+		margin: 0 10px;
+		width: 100%;
 	}
 
 	/* CONTROLLERS */
@@ -174,7 +208,6 @@
       height: 60px;
     }
 		.gameboy {
-			flex-direction: column;
       padding: 20px 10px;
 			align-items: normal;
 			height: -webkit-fill-available;
@@ -221,6 +254,7 @@
 			<div id="preloader">LOADING...</div>
 		</div>
 	</div>
+	<button data-modal="show" class="gameboy__setting_btn"></button>
 	<div class="gameboy__controller_wrapper">
 		<div class="gameboy__controller y-orientation">
 			<button data-control="ArrowUp" data-coordinate-index="0" class="control control-top">↑</button>
@@ -231,6 +265,24 @@
 			<button data-control="ArrowRight" data-coordinate-index="2" class="control control-right">→</button>
 		</div>
 	</div>
+	<div data-modal="hide" id="settings" class="gameboy__setting">
+		<div class="gameboy__setting_content">
+			<h3>Settings</h3>
+			<hr>
+			<h4>Gamepad setting</h4>
+			<div>
+				<p id="controller">No Controller Connected</p>
+				<p id="ButtonId">No Controller Connected</p>
+				<p id="axis1"></p>
+				<p id="axis2"></p>
+				<p id="axis3"></p>
+				<p id="axis4"></p>
+				<input type="number" id="forward" placeholder="Button forward">
+				<input type="number" id="back" placeholder="Button back">
+				<input type="number" id="rotate" placeholder="Axis for rotation">
+			</div>
+		</div>
+	</div>
 </section>
 
 <script>
@@ -239,23 +291,22 @@
   const indicator = document.getElementById('batteryIndicator')
   const preloader = document.getElementById('preloader')
 
-  window.addEventListener("gamepadconnected", function (e) {
+	const settingHandlers = document.querySelectorAll('[data-modal]')
+	const settingsModal = document.getElementById('settings')
 
-    gamepad = e.gamepad;
+  settingHandlers.forEach(button => {
+    button.addEventListener('click', ({currentTarget, target}) => {
+      if (currentTarget.dataset.modal === 'show') {
+        settingsModal.classList.add('show')
+      }
 
-    console.log("Геймпад підключено: " + gamepad.id);
-
-
-  });
-
-
-  window.addEventListener("gamepaddisconnected", function (e) {
-
-    gamepad = null;
-
-    console.log("Геймпад відключено.");
-
-  });
+      if (currentTarget.dataset.modal === 'hide') {
+        if(!target.closest('.gameboy__setting_content')) {
+          settingsModal.classList.remove('show')
+				}
+      }
+    })
+	})
 
   streamImage.addEventListener('load', ({currentTarget}) => {
     currentTarget.classList.remove('hidden')
@@ -369,6 +420,17 @@
       handleMoveButton(currentTarget.dataset.control).deactivate()
     })
   })
+
+  window.addEventListener("gamepadconnected", function (e) {
+    gamepad = e.gamepad;
+    console.log("Геймпад підключено: " + gamepad.id);
+  });
+
+
+  window.addEventListener("gamepaddisconnected", function (e) {
+    gamepad = null;
+    console.log("Геймпад відключено.");
+  });
 </script>
 </body>
 </html>
