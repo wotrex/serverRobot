@@ -51,7 +51,7 @@
 
 	/* PRELOADER */
 	#preloader {
-		height: 30vh;
+		height: 40vh;
 		aspect-ratio: 1;
 		background: #50540d;
 		display: flex;
@@ -287,6 +287,16 @@
 
 <script>
   var gamepad;
+  var controller = document.getElementById("controller");
+  var axis1 = document.getElementById("axis1");
+  var axis2 = document.getElementById("axis2");
+  var axis3 = document.getElementById("axis3");
+  var axis4 = document.getElementById("axis4");
+  var textarea = document.getElementById("ButtonId");
+  var forward = document.getElementById("forward");
+  var back = document.getElementById("back");
+  var rotate = document.getElementById("rotate");
+  
   const streamImage = document.getElementById('stream')
   const indicator = document.getElementById('batteryIndicator')
   const preloader = document.getElementById('preloader')
@@ -372,17 +382,35 @@
         // a gamepad is connected and has an index
 
         const myGamepad = navigator.getGamepads()[gamepad.index];
-        if (myGamepad.buttons[7].pressed){
-          coordinates[0] = myGamepad.buttons[7].value
+		controller.textContent = myGamepad.id
+		textarea.textContent = "";
+		myGamepad.buttons.map(e => e.pressed).forEach((isPressed, buttonIndex) => {
+
+			if(isPressed) {
+
+				// button is pressed; indicate this on the page
+
+				textarea.textContent += `Button ${buttonIndex}  `;
+			}
+		});
+        if (myGamepad.buttons[forward.value].pressed){
+          coordinates[0] = myGamepad.buttons[forward.value].value
         }else{
           coordinates[0] = 0
         }
-        if (myGamepad.buttons[6].pressed){
-          coordinates[1] = myGamepad.buttons[6].value
+        if (myGamepad.buttons[back.value].pressed){
+          coordinates[1] = myGamepad.buttons[back.value].value
         }else{
           coordinates[1] = 0
         }
-        coordinates[2] = myGamepad.axes[0]
+        coordinates[2] = myGamepad.axes[rotate.value]
+		axis1.textContent = `Axis1 ${myGamepad.axes[0]}  `;
+
+        axis2.textContent = `Axis2 ${myGamepad.axes[1]}  `;
+
+        axis3.textContent = `Axis3 ${myGamepad.axes[2]}  `;
+
+        axis4.textContent = `Axis4 ${myGamepad.axes[3]}  `;
     }
 
   })
