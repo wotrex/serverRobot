@@ -115,5 +115,5 @@ if __name__ == '__main__':
     WebApp = web.Application()
     WebApp.router.add_get('/ws', handle)
     web.run_app(WebApp)
-    flag_close = false
+    flag_close = False
     os.kill(own_pid, 9)
