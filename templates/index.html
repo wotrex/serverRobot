@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 	<title>Live Racer</title>
 </head>
 
@@ -123,6 +123,9 @@
 		border: 2px solid #d7d7d7;
 		background: #5e5959;
 		color: white;
+		-webkit-user-select: none; /* Safari */
+		-ms-user-select: none; /* IE 10 and IE 11 */
+		user-select: none; /* Standard syntax */
 	}
 
 	.control.active {
@@ -293,11 +296,14 @@
     handleMoveButton(key).deactivate()
   });
 
-  document.addEventListener('touchstart', () => {
-    console.log('touchstart')
-  })
-  document.addEventListener('touchend', () => {
-    console.log('touchend')
+  const controlButtons = document.querySelectorAll("[data-control]")
+  controlButtons.forEach(button => {
+    button.addEventListener('touchstart', ({currentTarget}) => {
+      handleMoveButton(currentTarget.dataset.control).activate()
+    })
+    button.addEventListener('touchend', ({currentTarget}) => {
+      handleMoveButton(currentTarget.dataset.control).deactivate()
+    })
   })
 </script>
 </body>
