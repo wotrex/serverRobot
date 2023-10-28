@@ -44,6 +44,8 @@ def socket_server():
             client_socket.setblocking(1)
     if not flag_close:
         client_socket.close()
+    if flag_close:
+        print('stopped')
 
             
 
