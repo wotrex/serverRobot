@@ -238,7 +238,7 @@
   const sendCoordinates = async (coordinates) => {
     console.log('coordinates: ', coordinates)
     try {
-      const result = await fetch('http://212.26.132.114:5000/gamepad_data', {
+      const result = await fetch('/gamepad_data', {
         method: "POST",
         headers: {
           "Content-Type": 'application/json',
