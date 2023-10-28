@@ -42,6 +42,8 @@ def socket_server():
             except socket.error as e:
                 pass
             client_socket.setblocking(1)
+    if not flag_close:
+        client_socket.close()
 
             
 
