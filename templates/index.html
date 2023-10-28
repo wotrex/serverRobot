@@ -383,32 +383,32 @@
 
         const myGamepad = navigator.getGamepads()[gamepad.index];
 		controller.textContent = myGamepad.id
-		textarea.textContent = "";
+		textarea.textContent = "Button not pressed";
 		myGamepad.buttons.map(e => e.pressed).forEach((isPressed, buttonIndex) => {
 
 			if(isPressed) {
 
 				// button is pressed; indicate this on the page
-
+				textarea.textContent = "";
 				textarea.textContent += `Button ${buttonIndex}  `;
 			}
 		});
-		if (forward.value != null){
+		if (forward.value != ''){
 			if (myGamepad.buttons[forward.value].pressed){
 			coordinates[0] = myGamepad.buttons[forward.value].value
 			}else{
 			coordinates[0] = 0
 			}
 		}
-		if (back.value != null){
+		if (back.value != ''){
 			if (myGamepad.buttons[back.value].pressed){
 			coordinates[1] = myGamepad.buttons[back.value].value
 			}else{
 			coordinates[1] = 0
 			}
 		}
-		if (rotate.value != null){
-        	coordinates[2] = myGamepad.axes[rotate.value]
+		if (rotate.value != ''){
+        	coordinates[2] = myGamepad.axes[rotate.value-1]
 		}
 		axis1.textContent = `Axis1 ${myGamepad.axes[0]}  `;
 
@@ -462,7 +462,7 @@
 
 
   window.addEventListener("gamepaddisconnected", function (e) {
-    gamepad = null;
+    gamepad = undefined;
     console.log("Геймпад відключено.");
   });
 </script>
