@@ -2,7 +2,7 @@ import aiohttp
 from aiohttp import web, WSMsgType, ClientSession
 from aiohttp.web import WebSocketResponse
 import numpy as np
-import cv2, socket, pickle
+import cv2, socket, pickle, os
 from threading import Thread
 from flask import Flask, request, render_template, Response, jsonify
 
@@ -15,13 +15,13 @@ frame = None
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(('0.0.0.0', 9999))
 server.listen(1)
-
+flag_close = True
 
 def socket_server():
     client_socket = 0
     client_address = 0
-    global data
-    while True:
+    global data, flag_close
+    while flag_close:
         if client_socket == 0:
             client_socket, client_address = server.accept()
             print(client_address, ' connected')
@@ -48,6 +48,7 @@ def socket_server():
 
 ##############################################Flask########################
 app = Flask(__name__)
+own_pid = os.getpid()
 
 def main():
     global frame
@@ -114,5 +115,5 @@ if __name__ == '__main__':
     WebApp = web.Application()
     WebApp.router.add_get('/ws', handle)
     web.run_app(WebApp)
-    t1.join()
-    t2.join()
+    os.kill(own_pid, 9)
+    flag_close = false
