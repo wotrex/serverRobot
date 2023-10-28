@@ -238,6 +238,23 @@
   const indicator = document.getElementById('batteryIndicator')
   const preloader = document.getElementById('preloader')
 
+  window.addEventListener("gamepadconnected", function (e) {
+
+    gamepad = e.gamepad;
+
+    console.log("Геймпад підключено: " + gamepad.id);
+
+  });
+
+
+  window.addEventListener("gamepaddisconnected", function (e) {
+
+    gamepad = null;
+
+    console.log("Геймпад відключено.");
+
+  });
+
   streamImage.addEventListener('load', ({currentTarget}) => {
     currentTarget.classList.remove('hidden')
     indicator.classList.add('power-on')
