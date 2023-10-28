@@ -1,228 +1,304 @@
 <!doctype html>
-
 <html lang="en">
-
 <head>
-
-    <!-- Required meta tags -->
-
-    <meta charset="utf-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-
-    <!-- Bootstrap CSS -->
-
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
-
-          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-
-
-    <title>Live Streaming Demonstration</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Live Racer</title>
 </head>
 
+<style>
+	html {
+		box-sizing: border-box;
+	}
+
+	body {
+		height: 100vh;
+		margin: 0;
+		padding: 0;
+		background: #c9c8c3;
+		display: flex;
+		align-items: center;
+	}
+
+	.gameboy {
+		padding: 60px 30px;
+		max-width: 1200px;
+		width: 100%;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+	}
+
+	/* SCREEN */
+	.gameboy__screen {
+		margin: 0 auto;
+		background: #646461;
+		padding: 40px 60px 30px 100px;
+		border-radius: 10px 10px 60px 10px;
+		max-width: 50vh;
+		position: relative;
+	}
+
+	.gameboy__screen img {
+		width: 100%;
+	}
+
+	.gameboy__screen img.hidden {
+		display: none;
+	}
+
+	/* PRELOADER */
+	#preloader {
+		height: 30vh;
+		aspect-ratio: 1;
+		background: #50540d;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-top: 3px solid rgba(65, 56, 56, 0.8);
+		border-left: 3px solid rgba(65, 56, 56, 0.8);
+	}
+
+	#preloader.hidden {
+		display: none;
+	}
+
+
+	/* INDICATOR */
+	#batteryIndicator {
+		position: absolute;
+		left: 15px;
+		top: 50%;
+		transition: all .3s ease-in-out;
+	}
+
+	#batteryIndicator.power-on:before {
+		background: rgba(225, 0, 0, 1);
+	}
+
+	#batteryIndicator:before {
+		content: '';
+		display: block;
+		width: 15px;
+		height: 15px;
+		background: rgba(225, 0, 0, 0.51);
+		border-radius: 50%;
+		margin: 0 auto 10px;
+	}
+
+	#batteryIndicator:after {
+		content: 'BATTERY';
+		font-family: sans-serif;
+		color: #afaeae;
+	}
+
+	/* CONTROLLERS */
+	.gameboy__controller {
+		padding: 15px;
+		display: flex;
+		flex-wrap: nowrap;
+		gap: 8px;
+		background: transparent;
+		flex: 1 1;
+		justify-content: center;
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+	.gameboy__controller.y-orientation {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		left: 0;
+	}
+
+	.gameboy__controller.x-orientation {
+		right: 0;
+	}
+
+	.control {
+		outline: none;
+		box-shadow: none;
+		border: 2px solid #d7d7d7;
+		background: #5e5959;
+		color: white;
+	}
+
+	.control.active {
+		background: #6b2828;
+	}
+
+	.control-top {
+		width: 25px;
+		height: 40px;
+	}
+
+	.control-bottom {
+		width: 25px;
+		height: 40px;
+	}
+
+	.control-left {
+		width: 40px;
+		height: 25px;
+	}
+
+	.control-right {
+		width: 40px;
+		height: 25px;
+	}
+
+	@media screen and (max-width: 920px) {
+		.gameboy {
+			flex-direction: column;
+			align-items: normal;
+			height: -webkit-fill-available;
+		}
+
+		.gameboy__controller_wrapper {
+			display: flex;
+			align-items: center;
+			margin-top: auto;
+		}
+
+		.gameboy__screen {
+			padding: 20px 30px 15px 50px;
+		}
+
+		.gameboy__controller {
+			position: static;
+			transform: none;
+		}
+
+		#batteryIndicator {
+			left: 5px;
+		}
+
+		#batteryIndicator:before {
+			width: 8px;
+			height: 8px;
+			margin: 0 auto 0;
+		}
+
+		#batteryIndicator:after {
+			font-size: 9px;
+		}
+	}
+</style>
+
 <body>
-
-<div class="container">
-
-    <div class="row">
-
-        <div class="col-lg-8  offset-lg-2">
-
-            <h3 class="mt-5">Live Streaming</h3>
-
-            <img src="{{ url_for('video') }}" width="100%">
-
-        </div>
-
-    </div>
-
-</div>
-<h1>Управління геймпадом</h1>
-
-    <body>
-        <h2 id="controller">No Controller Connected</h2>
-
-        <h3 id="ButtonId">No Controller Connected</h3>
-
-        <h3 id="axis1"></h3>
-
-        <h3 id="axis2"></h3>
-
-        <h3 id="axis3"></h3>
-
-        <h3 id="axis4"></h3>
-
-        <input type="number" id="forward" placeholder="Button forward">
-
-        <input type="number" id="back" placeholder="Button back">
-
-        <input type="number" id="rotate" placeholder="Axis for rotation">
-    </body>
-
-    <script type="text/javascript">
-
-        var gamepad;
-
-        var GamepadData
-
-        var controller = document.getElementById("controller");
-
-        var axis1 = document.getElementById("axis1");
-
-        var axis2 = document.getElementById("axis2");
-
-        var axis3 = document.getElementById("axis3");
-
-        var axis4 = document.getElementById("axis4");
-
-        var oldA1 = 0
-
-        var oldA2 = 0 
-
-        var oldA3 = 0
-
-        var oldA4 = 0
-
-	var oldF = 0
-
-	var oldB = 0
-
-        var textarea = document.getElementById("ButtonId");
-
-        var forward = document.getElementById("forward");
-
-        var back = document.getElementById("back");
-
-        var rotate = document.getElementById("rotate");
-
-        
-
-        window.addEventListener("gamepadconnected", function (e) {
-
-            gamepad = e.gamepad;
-
-            console.log("Геймпад підключено: " + gamepad.id);
-
-        });
-
-
-        window.addEventListener("gamepaddisconnected", function (e) {
-
-            gamepad = null;
-
-            console.log("Геймпад відключено.");
-
-        });
-
-        setInterval(() => {
-
-            if(gamepad !== undefined) {
-
-                // a gamepad is connected and has an index
-
-                const myGamepad = navigator.getGamepads()[gamepad.index];
-
-                controller.textContent = myGamepad.id
-
-                textarea.textContent = "";
-
-                myGamepad.buttons.map(e => e.pressed).forEach((isPressed, buttonIndex) => {
-
-                    if(isPressed) {
-
-                        // button is pressed; indicate this on the page
-
-                        textarea.textContent += `Button ${buttonIndex}  `;
-
-                        if (forward.value != 0 && back.value != 0) {
-
-                            send()
-
-                        }
-
-                    }
-
-                })
-
-                
-
-                axis1.textContent = `Axis1 ${myGamepad.axes[0]}  `;
-
-                axis2.textContent = `Axis2 ${myGamepad.axes[1]}  `;
-
-                axis3.textContent = `Axis3 ${myGamepad.axes[2]}  `;
-
-                axis4.textContent = `Axis4 ${myGamepad.axes[3]}  `;
-
-                if (forward.value != 0 && back.value != 0) {
-			if(myGamepad.axes[0] != oldA1 || myGamepad.axes[1] != oldA2 || myGamepad.axes[2] != oldA3 || myGamepad.axes[3] != oldA4){
-
-				send()
-
-                	}
-
-			if (myGamepad.buttons[forward.value].value == 0 && oldF > 0){
-
-				send()
-
-			}
-
-			if (myGamepad.buttons[back.value].value == 0 && oldB > 0){
-
-				send()
-
-			}
-		}
-
-                oldA1 = myGamepad.axes[0]
-
-                oldA2 = myGamepad.axes[1]
-
-                oldA3 = myGamepad.axes[2]
-
-                oldA4 = myGamepad.axes[3]
-
-		function send(){
-			GamepadData = [myGamepad.buttons[forward.value].value, myGamepad.buttons[back.value].value, myGamepad.axes[rotate.value-1]]
-			sendGamepadData(GamepadData)
-			oldF = myGamepad.buttons[forward.value].value
-			oldB = myGamepad.buttons[back.value].value
-		}
-            }
-
-        }, 100)
-
-        
-
-        function sendGamepadData(gamepadData) {
-
-                // Відправити дані на сервер за допомогою AJAX
-
-                $.ajax({
-
-                    type: 'POST',
-
-                    url: '/gamepad_data',
-
-                    contentType: 'application/json',
-
-                    data: JSON.stringify(gamepadData),
-
-                    success: function () {
-
-                        console.log("Дані геймпада відправлені на сервер");
-
-                    }
-
-                });
-
+<section class="gameboy">
+	<div class="gameboy__screen">
+		<span id="batteryIndicator"></span>
+		<div class="stream__container">
+			<img id="stream" src="{{ url_for('video') }}" alt="Live streaming..."/>
+			<div id="preloader">LOADING...</div>
+		</div>
+	</div>
+	<div class="gameboy__controller_wrapper">
+		<div class="gameboy__controller y-orientation">
+			<button data-control="ArrowUp" data-coordinate-index="0" class="control control-top">↑</button>
+			<button data-control="ArrowDown" data-coordinate-index="1" class="control control-bottom">↓</button>
+		</div>
+		<div class="gameboy__controller x-orientation">
+			<button data-control="ArrowLeft" data-coordinate-index="2" class="control control-left">←</button>
+			<button data-control="ArrowRight" data-coordinate-index="2" class="control control-right">→</button>
+		</div>
+	</div>
+</section>
+
+<script>
+  const streamImage = document.getElementById('stream')
+  const indicator = document.getElementById('batteryIndicator')
+  const preloader = document.getElementById('preloader')
+
+  streamImage.addEventListener('load', ({currentTarget}) => {
+    currentTarget.classList.remove('hidden')
+    indicator.classList.add('power-on')
+    preloader.classList.add('hidden')
+  })
+
+  streamImage.addEventListener('error', ({currentTarget}) => {
+    currentTarget.classList.add('hidden')
+    indicator.classList.remove('power-on')
+    preloader.classList.remove('hidden')
+  })
+
+  const coordinates = new Proxy([0, 0, 0], {
+    set: async function (target, key, value) {
+      if (target[key] !== value) {
+        target[key] = value;
+        await sendCoordinates(target);
+      }
+      return true;
+    },
+  });
+
+  const sendCoordinates = async (coordinates) => {
+    console.log('coordinates: ', coordinates)
+    try {
+      const result = await fetch('http://212.26.132.114:5000/gamepad_data', {
+        method: "POST",
+        headers: {
+          "Content-Type": 'application/json',
+        },
+        data: JSON.stringify(coordinates),
+      })
+
+      if (result.ok) {
+        console.log("Coordinates successfully received");
+      }
+    } catch (e) {
+      console.error('Error during sending coordinates: ', e.message)
+
+    }
+  };
+
+
+  const coordinateByDirection = (direction) => {
+    switch (direction) {
+      case 'ArrowLeft':
+        return -1
+      case 'ArrowRight':
+      case 'ArrowUp':
+      case 'ArrowDown':
+        return 1
+      default:
+        return 0
+    }
+  }
+  const handleMoveButton = (buttonKey) => {
+    const pressedButton = document.querySelector(`[data-control=${buttonKey}]`)
+    return {
+      activate: () => {
+        if (pressedButton && pressedButton.dataset.coordinateIndex) {
+          pressedButton.classList.add('active')
+          coordinates[pressedButton.dataset.coordinateIndex] = coordinateByDirection(buttonKey)
         }
+      },
+      deactivate: () => {
+        if (pressedButton && pressedButton.dataset.coordinateIndex) {
+          pressedButton.classList.remove('active')
+          coordinates[pressedButton.dataset.coordinateIndex] = 0
+        }
+      },
+    }
+  }
 
-    </script>
+  document.addEventListener('keydown', ({key}) => {
+    handleMoveButton(key).activate()
+  });
+  document.addEventListener('keyup', ({key}) => {
+    handleMoveButton(key).deactivate()
+  });
 
+  document.addEventListener('touchstart', () => {
+    console.log('touchstart')
+  })
+  document.addEventListener('touchend', () => {
+    console.log('touchend')
+  })
+</script>
 </body>
-
 </html>
