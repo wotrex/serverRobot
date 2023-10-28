@@ -44,8 +44,7 @@ def socket_server():
             client_socket.setblocking(1)
     if not flag_close:
         client_socket.close()
-    if flag_close:
-        print('stopped')
+
 
             
 
@@ -119,5 +118,8 @@ if __name__ == '__main__':
     WebApp = web.Application()
     WebApp.router.add_get('/ws', handle)
     web.run_app(WebApp)
+    print('close1')
     flag_close = False
+    print('close2')
     os.kill(own_pid, 9)
+    print('close3')
