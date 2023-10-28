@@ -244,6 +244,7 @@
 
     console.log("Геймпад підключено: " + gamepad.id);
 
+
   });
 
 
@@ -310,6 +311,29 @@
         return 0
     }
   }
+
+
+  setInterval(() => {
+
+    if(gamepad !== undefined) {
+
+        // a gamepad is connected and has an index
+
+        const myGamepad = navigator.getGamepads()[gamepad.index];
+        if (myGamepad.buttons[7].pressed){
+          coordinates[0] = myGamepad.buttons[7].value
+        }else{
+          coordinates[0] = 0
+        }
+        if (myGamepad.buttons[6].pressed){
+          coordinates[1] = myGamepad.buttons[6].value
+        }else{
+          coordinates[1] = 0
+        }
+        coordinates[2] = myGamepad.axes[0]
+    }
+
+  })
   const handleMoveButton = (buttonKey) => {
     const pressedButton = document.querySelector(`[data-control=${buttonKey}]`)
     return {
