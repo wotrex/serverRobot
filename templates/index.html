@@ -341,7 +341,6 @@
   });
 
   const sendCoordinates = async (coordinates) => {
-    console.log('coordinates: ', coordinates)
     try {
       const result = await fetch('/gamepad_data', {
         method: "POST",
@@ -351,9 +350,6 @@
         body: JSON.stringify(coordinates),
       })
 
-      if (result.ok) {
-        console.log("Coordinates successfully received");
-      }
     } catch (e) {
       console.error('Error during sending coordinates: ', e.message)
 
@@ -393,21 +389,21 @@
 				textarea.textContent += `Button ${buttonIndex}  `;
 			}
 		});
-		if (forward.value != ''){
+		if (forward.value != '' && myGamepad.buttons.length > forward.value){
 			if (myGamepad.buttons[forward.value].pressed){
-			coordinates[0] = myGamepad.buttons[forward.value].value
+				coordinates[0] = myGamepad.buttons[forward.value].value
 			}else{
-			coordinates[0] = 0
+				coordinates[0] = 0
 			}
 		}
-		if (back.value != ''){
+		if (back.value != '' && myGamepad.buttons.length > back.value){
 			if (myGamepad.buttons[back.value].pressed){
-			coordinates[1] = myGamepad.buttons[back.value].value
+				coordinates[1] = myGamepad.buttons[back.value].value
 			}else{
-			coordinates[1] = 0
+				coordinates[1] = 0
 			}
 		}
-		if (rotate.value != ''){
+		if (rotate.value != '' && myGamepad.axes.length > rotate.value){
         	coordinates[2] = myGamepad.axes[rotate.value-1]
 		}
 		axis1.textContent = `Axis1 ${myGamepad.axes[0]}  `;
@@ -421,7 +417,7 @@
 
   })
   const handleMoveButton = (buttonKey) => {
-    const pressedButton = document.querySelector(`[data-control=${buttonKey}]`)
+	const pressedButton = document.querySelector(`[data-control="${buttonKey}"]`)
     return {
       activate: () => {
         if (pressedButton && pressedButton.dataset.coordinateIndex) {
@@ -439,10 +435,10 @@
   }
 
   document.addEventListener('keydown', ({key}) => {
-    handleMoveButton(key).activate()
+		handleMoveButton(key).activate()
   });
   document.addEventListener('keyup', ({key}) => {
-    handleMoveButton(key).deactivate()
+		handleMoveButton(key).deactivate()
   });
 
   const controlButtons = document.querySelectorAll("[data-control]")
