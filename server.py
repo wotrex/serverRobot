@@ -26,6 +26,7 @@ def socket_server():
             client_socket, client_address = server.accept()
             print(client_address, ' connected')
         else:
+            print(flag_close)
             if data is not None:
                 data_to_send_serialized = pickle.dumps(data)
                 client_socket.send(data_to_send_serialized)
