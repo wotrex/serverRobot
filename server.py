@@ -1,55 +1,16 @@
-import aiohttp
 from aiohttp import web, WSMsgType, ClientSession
 from aiohttp.web import WebSocketResponse
 import numpy as np
-import cv2, socket, pickle, os
+import cv2, asyncio, uuid
 from threading import Thread
 from flask import Flask, request, render_template, Response, jsonify
 
 
-data = None
 frame = None
-
-################################################socket###############
-
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(('0.0.0.0', 9999))
-server.listen(1)
-flag_close = True
-
-def socket_server():
-    client_socket = 0
-    client_address = 0
-    global data, flag_close
-    while flag_close:
-        if client_socket == 0:
-            client_socket, client_address = server.accept()
-            print(client_address, ' connected')
-        else:
-            print(flag_close)
-            if data is not None:
-                data_to_send_serialized = pickle.dumps(data)
-                client_socket.send(data_to_send_serialized)
-                data = None
-
-            try:
-                client_socket.setblocking(0)
-                data_recv = client_socket.recv(1024)
-                if not data_recv:
-                    print(client_address, " disconnected")
-                    client_socket.close()
-                    client_socket = 0
-                    continue
-            except socket.error as e:
-                pass
-            client_socket.setblocking(1)
-
-            
-
+close = False
 
 ##############################################Flask########################
 app = Flask(__name__)
-own_pid = os.getpid()
 
 def main():
     global frame
@@ -61,7 +22,6 @@ def main():
             
                             b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
     
-
 @app.route("/")
 
 def index():
@@ -77,8 +37,9 @@ def video():
 
 @app.route('/gamepad_data', methods=['POST'])
 def gamepad_data():
-    global data
     data = request.get_json()
+    for client_id in websocket_connections:
+        asyncio.run(send_data_via_ws(client_id, data))
     return jsonify({'message': 'Data gets'})
 
 def start_flask():
@@ -88,11 +49,25 @@ def start_flask():
 
 
 #####################################Server video#################################
+
+websocket_connections = {}
+
+def generate_unique_client_id():
+    return str(uuid.uuid4())
+
+async def send_data_via_ws(client_id, data):
+    ws = websocket_connections.get(client_id)
     
+    await ws.send_json(data)
+
 async def handle(request):
-    global frame, data
+    global frame
     ws = WebSocketResponse()
     await ws.prepare(request)
+    client_id = generate_unique_client_id()  # Генерувати унікальний ідентифікатор для кожного клієнта
+    websocket_connections[client_id] = ws  # Зберігати посилання на WebSocket з'єднання
+    print('Client connected: ' + client_id)
+
 
     while True:
         msg = await ws.receive()
@@ -103,6 +78,8 @@ async def handle(request):
 ##            cv2.imshow('Server Video', frame)
 ##            cv2.waitKey(1)
         elif msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
+            del websocket_connections[client_id]  # При завершенні з'єднання видаляємо його зі словника
+            print('Client disconnected: ' + client_id)
             break
 
     return ws
@@ -111,10 +88,6 @@ async def handle(request):
 if __name__ == '__main__':
     t1 = Thread(target = start_flask)
     t1.start()
-    t2 = Thread(target = socket_server)
-    t2.start()
     WebApp = web.Application()
     WebApp.router.add_get('/ws', handle)
     web.run_app(WebApp)
-    flag_close = False
-    os.kill(own_pid, 9)
