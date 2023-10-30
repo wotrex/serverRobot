@@ -72,8 +72,11 @@ def generate_unique_client_id():
     return str(uuid.uuid4())
 
 async def send_data_via_ws(client_id, data):
-    ws = websocket_connections.get(client_id)
-    await ws.send_json(data)
+    try:
+        ws = websocket_connections.get(client_id)
+        await ws.send_json(data)
+    except:
+        pass
 
 async def handleVideo(request):
     global frame
@@ -122,11 +125,14 @@ async def send_handler(request):
     websocket_connections[client_id] = ws  # Зберігати посилання на WebSocket з'єднання
     print('Client connected: ' + request.remote)
     while True:
-        msg = await ws.receive()
-        if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
-            del websocket_connections[client_id]
-            print('Client disconnected: ' + request.remote)
-            break
+        try:
+            msg = await ws.receive()
+            if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
+                del websocket_connections[client_id]
+                print('Client disconnected: ' + request.remote)
+                break
+        except:
+            print('Error')
     return ws
 
 if __name__ == '__main__':
